@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Lost & Found - story script.
+
+  Compile with:  python3 compile_story.py story.xml dist/story.bin
+
+  <story start="node-id" clock="minutes" timeout="node-id">
+    <node id="..." form="hat|mop|vending machine|guard|pigeon" [set="flag,flag"] [ending="true"]>
+      <p> paragraph text with inline style tags </p>
+      <look label="..." [cost="0"] [if="flag"] [unless="flag"] [set="flag"]>
+        <p> ... </p>            a dead end: becomes its own node with a single "Back." choice
+      </look>
+      <choice to="node-id" [cost="1"] [if="flag"] [unless="flag"] [set="flag"]> label </choice>
+    </node>
+
+  Inline style tags (nestable):
+    <b>      bold (heavier weight)
+    <pulse>  weight pulses over time
+    <shake>  jittery, discontinuous shaking
+    <wave>   slow vertical wave
+    <c name="palette-name">  color; names are defined in compile_story.py
+
+  A <choice> costs 1 minute unless it says otherwise; a <look> costs 0 unless it
+  says otherwise. When the clock hits zero the next transition goes to the
+  `timeout` node instead (unless the target is an ending).
+-->
+<story start="box" clock="15" timeout="end_missed">
+
+<!-- ===== the box ===== -->
+
+<node id="box" form="hat">
+  <p><c name="hat"><pulse>You are a hat.</pulse></c> You are in a box.</p>
+  <p><wave>Ten minutes ago you were on a head.</wave></p>
+  <look label="Whose head were you on?">
+    <p>You remember a woman in a <wave><b>grey coat</b></wave>.</p>
+    <p>She takes the <b>23:59</b> train every Friday. It is the last train of the day.</p>
+    <p><pulse>You want to be on her head when the train leaves.</pulse></p>
+  </look>
+  <look label="Look around.">
+    <p>This is the <b>lost and found box</b>. It is under the clerk's desk. Nobody is at the desk.</p>
+    <p>A <c name="mop">mop</c> leans against the box. You can reach it.</p>
+    <p>You cannot walk. But you can <b>jump</b> onto things. <pulse>When you jump onto a thing, you become that thing.</pulse> The old thing stays where it is.</p>
+  </look>
+  <choice to="mop">Jump onto the mop.</choice>
+</node>
+
+<!-- ===== the mop ===== -->
+
+<node id="mop" form="mop">
+  <p>You are a <c name="mop">mop</c>. You are wet.</p>
+  <p><wave>You can move, but only slowly.</wave> The hat is on your handle.</p>
+  <look label="Look around.">
+    <p>The hall is empty.</p>
+    <p>On the left there is a <c name="machine">vending machine</c>.</p>
+    <p>In front of you there is the <b>ticket gate</b>. It is closed. A <c name="guard">guard</c> is sleeping next to it. <wave>A <c name="pigeon">pigeon</c> is sitting on top of the gate.</wave></p>
+    <p>The platform and the train are behind the gate.</p>
+  </look>
+  <choice to="machine">Go to the vending machine and jump onto it.</choice>
+  <choice to="gate">Go to the ticket gate.</choice>
+</node>
+
+<node id="gate" form="mop">
+  <p>You are at the <b>ticket gate</b>. It is closed. It only opens for a <b>badge</b>.</p>
+  <p>The guard has a badge on his chest. He is asleep.</p>
+  <p><wave>A <c name="pigeon">pigeon</c> is sitting on top of the gate. You can reach it.</wave></p>
+  <look label="Bang the gate." cost="1" set="banged" unless="banged">
+    <p><shake>CLANG. CLANG. CLANG.</shake></p>
+    <p>The guard moves a little. He thinks it is the wind. He goes back to sleep.</p>
+  </look>
+  <choice to="pigeon">Jump onto the pigeon.</choice>
+  <choice to="mop" cost="0">Go back to the hall.</choice>
+</node>
+
+<!-- ===== the vending machine ===== -->
+
+<node id="machine" form="vending machine">
+  <p>You are a <c name="machine">vending machine</c>. You cannot move. But you can make noise, and you have a screen. The hat is on top of you.</p>
+  <p>The guard is sleeping six metres away. <pulse>You can see his <b>badge</b>.</pulse></p>
+  <look label="Show ERROR 404 on the screen." cost="1">
+    <p>The screen shows <c name="red"><pulse>ERROR 404</pulse></c>. It blinks two times. Then it shows READY again.</p>
+    <p>The guard does not wake up.</p>
+  </look>
+  <choice to="machine_clank">Drop a can.</choice>
+  <choice to="mop" cost="0">Jump back onto the mop.</choice>
+</node>
+
+<node id="machine_clank" form="vending machine">
+  <p><shake>KA-CLANK.</shake></p>
+  <p>A can falls out and rolls across the floor. The guard wakes up. He walks over and bends down to pick up the can.</p>
+  <p>His <b>badge</b> is right in front of you.</p>
+  <choice to="guard">Jump onto the guard.</choice>
+  <choice to="machine">Do nothing.</choice>
+</node>
+
+<!-- ===== the guard ===== -->
+
+<node id="guard" form="guard">
+  <p>You are the <c name="guard">guard</c>. Your name is Denis. <wave>You are very tired.</wave></p>
+  <p>The hat is on your head. You have a <b>badge</b>. It is time to check the platform. But your chair is right behind you.</p>
+  <choice to="platform">Walk through the gate.</choice>
+  <choice to="end_asleep">Sit down for a minute.</choice>
+</node>
+
+<node id="platform" form="guard">
+  <p>The gate opens. The last train is waiting. Its doors are open.</p>
+  <p>Three people are standing on the platform: a woman in a <b>grey coat</b>, a man in a <b>red hoodie</b>, and a kid with a <b>blue balloon</b>.</p>
+  <p><pulse>The doors will close soon. You can jump one more time.</pulse></p>
+  <choice to="end_good">Jump onto the woman in the grey coat.</choice>
+  <choice to="end_wrong">Jump onto the man in the red hoodie.</choice>
+  <choice to="end_kid">Jump onto the kid with the balloon.</choice>
+</node>
+
+<!-- ===== the pigeon ===== -->
+
+<node id="pigeon" form="pigeon">
+  <p>You are a <c name="pigeon">pigeon</c>. <wave>Everything is fast and simple.</wave></p>
+  <p>The hat is on your back. You fly over the gate to the platform. Three people are standing under you.</p>
+  <p>You are too high to see faces. You can only see colors: something <b>grey</b>, something <b>red</b>, and something <b>blue</b>.</p>
+  <choice to="end_good" cost="0">Dive at the grey one.</choice>
+  <choice to="end_wrong" cost="0">Dive at the red one.</choice>
+  <choice to="end_kid" cost="0">Dive at the blue one.</choice>
+</node>
+
+<!-- ===== endings ===== -->
+
+<node id="end_good" form="hat" ending="true">
+  <p>You land on the woman in the grey coat. She puts you straight without looking. She gets on the train.</p>
+  <p>The doors close. The train leaves.</p>
+  <p><c name="hat"><pulse>You are a hat on the right head. You are going home.</pulse></c></p>
+</node>
+
+<node id="end_wrong" form="hat" ending="true">
+  <p>You land on the man in the red hoodie. He wakes up. He finds a hat on his head. He does not ask why.</p>
+  <p>He gets on the train. It is the right train, but the wrong head.</p>
+  <p><c name="red"><pulse>You are someone else's hat now.</pulse></c></p>
+</node>
+
+<node id="end_kid" form="hat" ending="true">
+  <p>You land on the kid. The kid screams with joy and lets go of the balloon.</p>
+  <p><wave>The balloon goes up.</wave> The train leaves. The kid's mother takes you off and puts you in her bag.</p>
+  <p><c name="red">Tomorrow you will go back to the box.</c></p>
+</node>
+
+<node id="end_asleep" form="guard" ending="true">
+  <p>Denis sits down. The chair is very comfortable. He falls asleep.</p>
+  <p><wave>Behind his closed eyes, a train leaves.</wave></p>
+  <p><c name="red">You are a hat on a sleeping guard. The last train is gone.</c></p>
+</node>
+
+<node id="end_missed" form="hat" ending="true">
+  <p>It is 23:59. Far away, doors close and a train leaves. The platform lights go off one by one.</p>
+  <p>You are not on that train.</p>
+  <p><c name="red"><pulse>You are a hat. The box will still be here in the morning.</pulse></c></p>
+</node>
+
+</story>
